@@ -24,4 +24,4 @@ Using the data set depends on the following dependencies.
 >     region=us-east-1
 >     output=json
 
-* games.txt file is found at the location in 'PATH' var at top of this source file. Unzip the included games.txt.gz file.
+* games.txt file is found at the location in 'PATH' var at top of laod_data.js source file. Unzip the included games.txt.gz file.
