@@ -169,18 +169,23 @@ function transformLineToItem(line) {
     var game_date = line['date']['$date']; 
     item.game_date = {'S': game_date};
     
+    var lt = line['teams'];  
+    var homeIdx = lt[0]['home'] ? 0 : 1;
+    var awayIdx = (homeIdx === 1 ? 0 : 1);
     // Get team abbrevs and construct DDB primary key, concatenation of 
     //  each team's abbrev and the game date, which is an informative key and unique
     //  unless two teams play twice in the same day, which "should" never happen
-    var lt = line['teams'];  
-    var homeIdx = lt[0]['home'] ? 0 : 1;
-    var team0Abbrev = lt[0]['abbreviation'];
-    var team1Abbrev = lt[1]['abbreviation'];
-    item.h_team_a_team_date = {'S': team0Abbrev + '_' + team1Abbrev + '_' + game_date};
-   
+    var homeAbbrev = lt[homeIdx]['abbreviation'];
+    var awayAbbrev = lt[awayIdx]['abbreviation'];
+    item.h_team_a_team_date = {'S': homeAbbrev + '_' + awayAbbrev + '_' + game_date};
+  
+    // Get team full names
+    item.h_team_name = {'S': lt[homeIdx]['name']};
+    item.a_team_name = {'S': lt[awayIdx]['name']};
+
     // Get which team won
     item.h_team_won = {'N': (lt[homeIdx]['won'] ? 1 : 0) + ''};
-    item.a_team_won = {'N': (lt[homeIdx === 0 ? 1 : 0]['won'] ? 1 : 0) + ''};
+    item.a_team_won = {'N': (lt[awayIdx]['won'] ? 1 : 0) + ''};
 
     // Get the rest of the team stats. These are attributes in the DDB record.
     var teams = [];
@@ -204,9 +209,11 @@ function transformLineToItem(line) {
         "pf":   "personal_fouls",
         "pts":  "points"
     };
+    var homeAwayIdxs = [homeIdx, awayIdx];
     for (i = 0; i < 2; ++i) {
-        var team = teams[i] 
-        var prefix = i === homeIdx ? 'h_team_' : 'a_team_';
+        var idx = homeAwayIdxs[i];
+        var team = teams[idx] 
+        var prefix = (idx === homeIdx ? 'h_team_' : 'a_team_');
         for (stat in team) {
             if (statName[stat] !== undefined) {
                 item[prefix + statName[stat]] = {'N': team[stat] + ''};
@@ -238,17 +245,22 @@ function transformLineToItem(line) {
 
 // Read in each line of input from its input format
 (function main() {
-    var ddb = new aws.DynamoDB();
-    ddb = configureDdbConn(ddb);
+    try {
+        var ddb = new aws.DynamoDB();
+        ddb = configureDdbConn(ddb);
 
-    lazy.readFile(PATH)
-        .lines()
-        .each(function(line) {
+        lazy.readFile(PATH)
+            .lines()
+            .each(function(line) {
 
-            /// TEMP DEBUG
-            console.log(line);
+                // TEMP DEBUG
+                console.log(line);
 
-            loadItemToDdb(ddb, DDB_TABLE, transformLineToItem(line));
-        });
+                loadItemToDdb(ddb, DDB_TABLE, transformLineToItem(line));
+            });
+    }
+    catch (err) {
+        console.log(err);
+    }
 })();
 
