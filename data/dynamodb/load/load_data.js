@@ -127,7 +127,7 @@
 var lazy = require('lazy.js');
 var aws = require('aws-sdk');
 
-var PATH = '/Users/markweiss/Dropbox/projects/nba-analytics/games_one_record_one_line.txt';
+var PATH = '../../source/games.txt'; // games_one_record_one_line.txt';
 var DDB_TABLE = 'games';
 
 
@@ -223,7 +223,7 @@ function transformLineToItem(line) {
 
 
     // TEMP DEBUG
-    console.log(item);
+    // console.log(item);
 
     return item;
 }
@@ -254,7 +254,7 @@ function transformLineToItem(line) {
             .each(function(line) {
 
                 // TEMP DEBUG
-                console.log(line);
+                // console.log(line);
 
                 loadItemToDdb(ddb, DDB_TABLE, transformLineToItem(line));
             });

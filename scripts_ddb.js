@@ -71,7 +71,12 @@ var params = {
                 { 
                     AttributeName: 'h_team_name',
                     KeyType: 'HASH',
+                },
+                {
+                    AttributeName: 'game_date',
+                    KeyType: 'RANGE',
                 }
+
             ],
             Projection: { // required
                 ProjectionType: 'ALL', // (ALL | KEYS_ONLY | INCLUDE)
@@ -87,6 +92,10 @@ var params = {
                 {
                     AttributeName: 'a_team_name',
                     KeyType: 'HASH',
+                },
+                {
+                    AttributeName: 'game_date',
+                    KeyType: 'RANGE',
                 }
             ],
             Projection: { // required
@@ -103,6 +112,10 @@ var params = {
                 {
                     AttributeName: 'h_team_won',
                     KeyType: 'HASH',
+                },
+                {
+                    AttributeName: 'h_team_name',
+                    KeyType: 'RANGE',
                 }
             ],
             Projection: { // required
@@ -119,6 +132,10 @@ var params = {
                 {
                     AttributeName: 'a_team_won',
                     KeyType: 'HASH',
+                },
+                {
+                    AttributeName: 'a_team_name',
+                    KeyType: 'RANGE',
                 }
             ],
             Projection: { // required
@@ -155,6 +172,13 @@ db.listTables({}, function(err, data) {
 
 });
 
+var params = {
+    TableName: 'games',
+};
+db.describeTable(params, function(err, data) {
+    if (err) console.log(err); // an error occurred
+    else console.log(data); // successful response
+});
 
 var item = {
     TableName: 'games',
@@ -206,15 +230,6 @@ db.putItem(item, function(err, data) {
 });
 
 
-var params = {
-    TableName: 'games',
-};
-db.describeTable(params, function(err, data) {
-    if (err) console.log(err); // an error occurred
-    else console.log(data); // successful response
-});
-
-
 // Query Use Cases
 
 // Query for exact game
@@ -248,7 +263,7 @@ var params = {
 };
 db.query(params, function(err, data) {if (err) {console.log(err);} else {console.log(JSON.stringify(data));}}); 
 
-// Query for all home games for a team TODO Add date range key
+// Query for all home games for a team
 // @param - h_team_name, String, full name of home team
 var params = {
     TableName: 'games',
@@ -265,7 +280,57 @@ var params = {
 };
 db.query(params, function(err, data) {if (err) {console.log(err);} else {console.log(JSON.stringify(data));}});
 
-// Query for all away games for a team TODO Add date range key
+// Query for all home games for a team on a given date
+// @param - h_team_name, String, full name of home team
+// @param - game_date, String, date of game 
+var params = {
+    TableName: 'games',
+    IndexName: 'h_team_name_GIDX',
+    KeyConditions: {
+        h_team_name: {
+            ComparisonOperator: 'EQ',
+            AttributeValueList: [
+                {S: 'Atlanta Hawks'}
+            ]
+        },
+        game_date: {
+            ComparisonOperator: 'EQ',
+            AttributeValueList: [
+                {S: "1985-10-25T00:00:00.000-0400"}
+            ]
+        }
+    },
+    ScanIndexForward: false
+};
+db.query(params, function(err, data) {if (err) {console.log(err);} else {console.log(JSON.stringify(data));}});
+
+// Query for all home games for a team in a given date range 
+// @param - h_team_name, String, full name of home team
+// @param - game_date begin, String, date of game at start of range 
+// @param - game_date end, String, date of game at end of range 
+var params = {
+    TableName: 'games',
+    IndexName: 'h_team_name_GIDX',
+    KeyConditions: {
+        h_team_name: {
+            ComparisonOperator: 'EQ',
+            AttributeValueList: [
+                {S: 'Atlanta Hawks'}
+            ]
+        },
+        game_date: {
+            ComparisonOperator: 'BETWEEN',
+            AttributeValueList: [
+                {S: "1985-10-25T00:00:00.000-0400"},
+                {S: "1985-10-25T00:00:00.000-0400"}
+            ]
+        }
+    },
+    ScanIndexForward: false
+};
+db.query(params, function(err, data) {if (err) {console.log(err);} else {console.log(JSON.stringify(data));}});
+
+// Query for all away games for a team
 // @param - a_team_name, String, full name of away team
 var params = {
     TableName: 'games',
@@ -281,4 +346,87 @@ var params = {
     ScanIndexForward: false
 };
 db.query(params, function(err, data) {if (err) {console.log(err);} else {console.log(JSON.stringify(data));}});
+
+// Query for all home game wins
+// @param - h_team_won, String, full name of away team
+var params = {
+    TableName: 'games',
+    IndexName: 'h_team_won_GIDX',
+    KeyConditions: {
+        h_team_won: {
+            ComparisonOperator: 'EQ',
+            AttributeValueList: [
+                {N: '1'}
+            ]
+        }
+    },
+    ScanIndexForward: false
+};
+db.query(params, function(err, data) {if (err) {console.log(err);} else {console.log(JSON.stringify(data));}});
+
+// Query for all away game wins
+// @param - a_team_won, String, full name of away team
+var params = {
+    TableName: 'games',
+    IndexName: 'a_team_won_GIDX',
+    KeyConditions: {
+        a_team_won: {
+            ComparisonOperator: 'EQ',
+            AttributeValueList: [
+                {N: '1'}
+            ]
+        }
+    },
+    ScanIndexForward: false
+};
+db.query(params, function(err, data) {if (err) {console.log(err);} else {console.log(JSON.stringify(data));}});
+
+// Query for all home game wins by a home team
+// @param - h_team_won, String, 1 indcating team won, 0 indicating team lost
+// @param - h_team_name, String, full team name
+var params = {
+    TableName: 'games',
+    IndexName: 'h_team_won_GIDX',
+    KeyConditions: {
+        h_team_won: {
+            ComparisonOperator: 'EQ',
+            AttributeValueList: [
+                {N: '1'}
+            ]
+        },
+        h_team_name: {
+            ComparisonOperator: 'EQ',
+            AttributeValueList: [
+                {S: 'Washington Bullets'}
+            ]
+        } 
+    },
+    ScanIndexForward: false
+};
+db.query(params, function(err, data) {if (err) {console.log(err);} else {console.log(JSON.stringify(data));}});
+
+// Query for all away game wins
+// @param - a_team_won, String, 1 indcating team won, 0 indicating team lost
+// @param - a_team_name, String, full team name
+var params = {
+    TableName: 'games',
+    IndexName: 'a_team_won_GIDX',
+    KeyConditions: {
+        a_team_won: {
+            ComparisonOperator: 'EQ',
+            AttributeValueList: [
+                {N: '1'}
+            ]
+        },
+        a_team_name: {
+            ComparisonOperator: 'EQ',
+            AttributeValueList: [
+                {S: 'Washington Bullets'}
+            ]
+        }
+    },
+    ScanIndexForward: false
+};
+db.query(params, function(err, data) {if (err) {console.log(err);} else {console.log(JSON.stringify(data));}});
+
 
