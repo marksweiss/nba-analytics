@@ -9,9 +9,10 @@ Also included are scripts in node.js to load the data into Amazon's DynamoDB. Th
 ### Getting Started
  
 Using the data set depends on the following dependencies.
- 
-* DynamoDB local installed. See [here](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html) for instructions on downloading and running.
-* 'games' table created according to script in 'scripts_ddb.js'
+
+* node.js is installed. This code has been tested with node v0.10.32. 
+* Install DynamoDB local. See [here](http://docs.aws.amazon.com/amazondynamodb/latest/developerguide/Tools.DynamoDBLocal.html) for instructions on downloading and running.
+* Create 'games' table using script in '/data/dynamodb/ddl/create_table__games.js'
 * ~/.aws/credentials file accessible like so:
     
 >     [default]
@@ -23,5 +24,9 @@ Using the data set depends on the following dependencies.
 >     [default]
 >     region=us-east-1
 >     output=json
+www
+* 'games.txt' file is found at the location in 'PATH' var at top of '/data/dynamodb/load/load_data.js' source file. The default location for 'PATH' is '/data/source' and this will work with the inluded 'load_data.js' file as is. Unzip the included 'games.txt.gz' file into '/data/source'.
+* Run the 'load_data.js' script from node:
 
-* games.txt file is found at the location in 'PATH' var at top of laod_data.js source file. Unzip the included games.txt.gz file.
+>     $ PROJECT_ROOT/data/load/node load_data.js
+
