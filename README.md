@@ -24,7 +24,7 @@ Using the data set depends on the following dependencies.
 >     [default]
 >     region=us-east-1
 >     output=json
-www
+
 * 'games.txt' file is found at the location in 'PATH' var at top of '/data/dynamodb/load/load_data.js' source file. The default location for 'PATH' is '/data/source' and this will work with the inluded 'load_data.js' file as is. Unzip the included 'games.txt.gz' file into '/data/source'.
 * Run the 'load_data.js' script from node:
 
